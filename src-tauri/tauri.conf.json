@@ -1,4 +1,4 @@
-{"$schema":"https://schema.tauri.app/config/2","productName":"ZR tasks","version":"0.2.0","identifier":"com.gm.zrtasks",
+{"$schema":"https://schema.tauri.app/config/2","productName":"ZR tasks","version":"0.2.1","identifier":"com.gm.zrtasks",
 "build":{"frontendDist":"../dist","devUrl":"http://localhost:1420","beforeDevCommand":"npm run dev","beforeBuildCommand":"npm run build"},
 "app":{"windows":[{"label":"main","visible":false,"title":"ZR tasks","width":1100,"height":760,"minWidth":420,"minHeight":560}],"security":{"csp":null}},
 "bundle":{"active":true,"targets":"all","icon":["icons/32x32.png","icons/128x128.png","icons/128x128@2x.png","icons/icon.icns","icons/icon.ico"]}}
