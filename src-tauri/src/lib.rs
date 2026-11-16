@@ -23,18 +23,108 @@ const TOKEN: &str = "https://oauth2.googleapis.com/token";
 
 struct DbState(Mutex<Connection>);
 
-fn cid() -> String {
-    std::env::var("GOOGLE_CLIENT_ID")
-        .ok()
-        .or(option_env!("GOOGLE_CLIENT_ID").map(String::from))
-        .unwrap_or_default()
-}
+fn get_credentials(app: &AppHandle) -> (String, String) {
+    // 1. Check process env vars
+    let env_id = std::env::var("GOOGLE_CLIENT_ID").ok();
+    let env_sec = std::env::var("GOOGLE_CLIENT_SECRET").ok();
+    if let (Some(id), Some(sec)) = (env_id, env_sec) {
+        if !id.trim().is_empty() && !sec.trim().is_empty() {
+            return (id.trim().to_string(), sec.trim().to_string());
+        }
+    }
 
-fn csec() -> String {
-    std::env::var("GOOGLE_CLIENT_SECRET")
-        .ok()
-        .or(option_env!("GOOGLE_CLIENT_SECRET").map(String::from))
-        .unwrap_or_default()
+    // 2. Check compile-time option_env
+    if let (Some(id), Some(sec)) = (
+        option_env!("GOOGLE_CLIENT_ID"),
+        option_env!("GOOGLE_CLIENT_SECRET"),
+    ) {
+        if !id.trim().is_empty() && !sec.trim().is_empty() {
+            return (id.trim().to_string(), sec.trim().to_string());
+        }
+    }
+
+    // 3. Check SQLite database kv table
+    if let Some(state) = app.try_state::<DbState>() {
+        if let Ok(conn) = state.0.lock() {
+            let id: Option<String> = conn
+                .query_row(
+                    "SELECT val FROM kv WHERE key = 'google_client_id'",
+                    [],
+                    |r| r.get(0),
+                )
+                .ok();
+            let sec: Option<String> = conn
+                .query_row(
+                    "SELECT val FROM kv WHERE key = 'google_client_secret'",
+                    [],
+                    |r| r.get(0),
+                )
+                .ok();
+            if let (Some(i), Some(s)) = (id, sec) {
+                if !i.trim().is_empty() && !s.trim().is_empty() {
+                    return (i.trim().to_string(), s.trim().to_string());
+                }
+            }
+        }
+    }
+
+    // 4. Check AppData .env
+    if let Ok(app_dir) = app.path().app_data_dir() {
+        let env_path = app_dir.join(".env");
+        if let Ok(iter) = dotenvy::from_path_iter(&env_path) {
+            let mut id = String::new();
+            let mut sec = String::new();
+            for item in iter.flatten() {
+                match item.0.as_str() {
+                    "GOOGLE_CLIENT_ID" => id = item.1,
+                    "GOOGLE_CLIENT_SECRET" => sec = item.1,
+                    _ => {}
+                }
+            }
+            if !id.trim().is_empty() && !sec.trim().is_empty() {
+                return (id.trim().to_string(), sec.trim().to_string());
+            }
+        }
+    }
+
+    // 5. Check exe dir .env
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            let env_path = exe_dir.join(".env");
+            if let Ok(iter) = dotenvy::from_path_iter(&env_path) {
+                let mut id = String::new();
+                let mut sec = String::new();
+                for item in iter.flatten() {
+                    match item.0.as_str() {
+                        "GOOGLE_CLIENT_ID" => id = item.1,
+                        "GOOGLE_CLIENT_SECRET" => sec = item.1,
+                        _ => {}
+                    }
+                }
+                if !id.trim().is_empty() && !sec.trim().is_empty() {
+                    return (id.trim().to_string(), sec.trim().to_string());
+                }
+            }
+        }
+    }
+
+    // 6. Check workspace .env
+    if let Ok(iter) = dotenvy::from_path_iter(".env") {
+        let mut id = String::new();
+        let mut sec = String::new();
+        for item in iter.flatten() {
+            match item.0.as_str() {
+                "GOOGLE_CLIENT_ID" => id = item.1,
+                "GOOGLE_CLIENT_SECRET" => sec = item.1,
+                _ => {}
+            }
+        }
+        if !id.trim().is_empty() && !sec.trim().is_empty() {
+            return (id.trim().to_string(), sec.trim().to_string());
+        }
+    }
+
+    (String::new(), String::new())
 }
 
 fn err<E: ToString>(e: E) -> String {
@@ -82,6 +172,60 @@ fn init_db(app: &AppHandle) -> Result<Connection, String> {
 }
 
 #[tauri::command]
+fn get_google_credentials(app: AppHandle) -> Result<Value, String> {
+    let (id, sec) = get_credentials(&app);
+    Ok(json!({ "client_id": id, "client_secret": sec }))
+}
+
+#[tauri::command]
+fn set_google_credentials(
+    app: AppHandle,
+    client_id: String,
+    client_secret: String,
+) -> Result<(), String> {
+    let id = client_id.trim().to_string();
+    let sec = client_secret.trim().to_string();
+
+    // 1. Save to SQLite
+    let state = app.state::<DbState>();
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+    conn.execute(
+        "INSERT INTO kv (key, val, updated_at) VALUES ('google_client_id', ?1, ?2)
+         ON CONFLICT(key) DO UPDATE SET val = ?1, updated_at = ?2",
+        params![id, now],
+    )
+    .map_err(err)?;
+    conn.execute(
+        "INSERT INTO kv (key, val, updated_at) VALUES ('google_client_secret', ?1, ?2)
+         ON CONFLICT(key) DO UPDATE SET val = ?1, updated_at = ?2",
+        params![sec, now],
+    )
+    .map_err(err)?;
+
+    // 2. Set environment variables
+    std::env::set_var("GOOGLE_CLIENT_ID", &id);
+    std::env::set_var("GOOGLE_CLIENT_SECRET", &sec);
+
+    // 3. Save to AppData .env
+    if let Ok(app_dir) = app.path().app_data_dir() {
+        let _ = std::fs::create_dir_all(&app_dir);
+        let env_path = app_dir.join(".env");
+        let content = format!("GOOGLE_CLIENT_ID={}\nGOOGLE_CLIENT_SECRET={}\n", id, sec);
+        let _ = std::fs::write(env_path, content);
+    }
+
+    // 4. Save to workspace .env
+    let content = format!("GOOGLE_CLIENT_ID={}\nGOOGLE_CLIENT_SECRET={}\n", id, sec);
+    let _ = std::fs::write(".env", content);
+
+    Ok(())
+}
+
+#[tauri::command]
 fn save_cache(app: AppHandle, key: String, val: String) -> Result<(), String> {
     let state = app.state::<DbState>();
     let conn = state.0.lock().map_err(|e| e.to_string())?;
@@ -116,9 +260,9 @@ fn load_cache(app: AppHandle, key: String) -> Result<Option<String>, String> {
 
 #[tauri::command]
 async fn login(app: AppHandle) -> Result<(), String> {
-    let (id, sec) = (cid(), csec());
-    if id.is_empty() {
-        return Err("Missing GOOGLE_CLIENT_ID in .env".into());
+    let (id, sec) = get_credentials(&app);
+    if id.is_empty() || sec.is_empty() {
+        return Err("MISSING_CREDENTIALS: Enter Google Client ID and Secret in Settings".into());
     }
     let verifier = rnd(64);
     let challenge = B64.encode(Sha256::digest(verifier.as_bytes()));
@@ -187,9 +331,12 @@ fn logout() -> Result<(), String> {
     store()?.delete_credential().map_err(err)
 }
 
-async fn access() -> Result<String, String> {
+async fn access(app: &AppHandle) -> Result<String, String> {
     let rt = store()?.get_password().map_err(|_| "NOT_CONNECTED".to_string())?;
-    let (id, sec) = (cid(), csec());
+    let (id, sec) = get_credentials(app);
+    if id.is_empty() || sec.is_empty() {
+        return Err("MISSING_CREDENTIALS".to_string());
+    }
     let r: Value = reqwest::Client::new()
         .post(TOKEN)
         .form(&[
@@ -216,10 +363,17 @@ async fn access() -> Result<String, String> {
         .ok_or_else(|| "NOT_CONNECTED".to_string())
 }
 
-async fn api(method: Method, url: &str, q: &[(&str, &str)], body: Option<Value>) -> Result<Value, String> {
+async fn api(
+    app: &AppHandle,
+    method: Method,
+    url: &str,
+    q: &[(&str, &str)],
+    body: Option<Value>,
+) -> Result<Value, String> {
+    let token = access(app).await?;
     let mut rb = reqwest::Client::new()
         .request(method, url)
-        .bearer_auth(access().await?)
+        .bearer_auth(token)
         .query(q);
     if let Some(b) = body {
         rb = rb.json(&b);
@@ -236,14 +390,15 @@ async fn api(method: Method, url: &str, q: &[(&str, &str)], body: Option<Value>)
     }
 }
 
-async fn lists() -> Result<Vec<Value>, String> {
-    let l = api(Method::GET, &format!("{TASKS}/users/@me/lists"), &[], None).await?;
+async fn lists(app: &AppHandle) -> Result<Vec<Value>, String> {
+    let l = api(app, Method::GET, &format!("{TASKS}/users/@me/lists"), &[], None).await?;
     Ok(l["items"].as_array().cloned().unwrap_or_default())
 }
 
 #[tauri::command]
-async fn fetch_day(min: String, max: String) -> Result<Value, String> {
+async fn fetch_day(app: AppHandle, min: String, max: String) -> Result<Value, String> {
     let ev = api(
+        &app,
         Method::GET,
         "https://www.googleapis.com/calendar/v3/calendars/primary/events",
         &[
@@ -256,10 +411,11 @@ async fn fetch_day(min: String, max: String) -> Result<Value, String> {
     )
     .await?;
     let mut tasks = vec![];
-    for l in lists().await? {
+    for l in lists(&app).await? {
         let id = l["id"].as_str().unwrap_or_default();
         let title = l["title"].as_str().unwrap_or("My Tasks");
         let t = api(
+            &app,
             Method::GET,
             &format!("{TASKS}/lists/{id}/tasks"),
             &[("showCompleted", "true"), ("maxResults", "100")],
@@ -276,40 +432,40 @@ async fn fetch_day(min: String, max: String) -> Result<Value, String> {
 }
 
 #[tauri::command]
-async fn set_task(list: String, id: String, done: bool) -> Result<(), String> {
+async fn set_task(app: AppHandle, list: String, id: String, done: bool) -> Result<(), String> {
     let body = if done {
         json!({"status": "completed"})
     } else {
         json!({"status": "needsAction", "completed": null})
     };
-    api(Method::PATCH, &format!("{TASKS}/lists/{list}/tasks/{id}"), &[], Some(body))
+    api(&app, Method::PATCH, &format!("{TASKS}/lists/{list}/tasks/{id}"), &[], Some(body))
         .await
         .map(|_| ())
 }
 
 #[tauri::command]
-async fn add_task(title: String, due: String, notes: Option<String>) -> Result<(), String> {
+async fn add_task(app: AppHandle, title: String, due: String, notes: Option<String>) -> Result<(), String> {
     let mut b = json!({"title": title, "due": due});
     if let Some(n) = notes {
         b["notes"] = json!(n);
     }
-    api(Method::POST, &format!("{TASKS}/lists/@default/tasks"), &[], Some(b))
+    api(&app, Method::POST, &format!("{TASKS}/lists/@default/tasks"), &[], Some(b))
         .await
         .map(|_| ())
 }
 
 #[tauri::command]
-async fn delete_task(list: String, id: String) -> Result<(), String> {
-    api(Method::DELETE, &format!("{TASKS}/lists/{list}/tasks/{id}"), &[], None)
+async fn delete_task(app: AppHandle, list: String, id: String) -> Result<(), String> {
+    api(&app, Method::DELETE, &format!("{TASKS}/lists/{list}/tasks/{id}"), &[], None)
         .await
         .map(|_| ())
 }
 
 #[tauri::command]
-async fn clear_done() -> Result<(), String> {
-    for l in lists().await? {
+async fn clear_done(app: AppHandle) -> Result<(), String> {
+    for l in lists(&app).await? {
         let id = l["id"].as_str().unwrap_or_default();
-        api(Method::POST, &format!("{TASKS}/lists/{id}/clear"), &[], None).await?;
+        api(&app, Method::POST, &format!("{TASKS}/lists/{id}/clear"), &[], None).await?;
     }
     Ok(())
 }
@@ -325,8 +481,9 @@ fn show_main(app: AppHandle) {
 }
 
 #[tauri::command]
-async fn add_event(summary: String, start: String, end: String) -> Result<(), String> {
+async fn add_event(app: AppHandle, summary: String, start: String, end: String) -> Result<(), String> {
     api(
+        &app,
         Method::POST,
         "https://www.googleapis.com/calendar/v3/calendars/primary/events",
         &[],
@@ -341,8 +498,9 @@ async fn add_event(summary: String, start: String, end: String) -> Result<(), St
 }
 
 #[tauri::command]
-async fn delete_event(id: String) -> Result<(), String> {
+async fn delete_event(app: AppHandle, id: String) -> Result<(), String> {
     api(
+        &app,
         Method::DELETE,
         &format!("https://www.googleapis.com/calendar/v3/calendars/primary/events/{id}"),
         &[],
@@ -456,7 +614,9 @@ pub fn run() {
             show_main,
             update_tray,
             save_cache,
-            load_cache
+            load_cache,
+            get_google_credentials,
+            set_google_credentials
         ])
         .on_window_event(|w, e| {
             if let WindowEvent::CloseRequested { api, .. } = e {

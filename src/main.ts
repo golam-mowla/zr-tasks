@@ -933,6 +933,46 @@ g('sAuto').onchange = () => {
   (g('sAuto').checked ? enable() : disable()).catch(() => toast('Launch at login works in the installed app'));
 };
 
+// Google Cloud Credentials handling
+async function loadGoogleCredentials() {
+  try {
+    const creds = await invoke<{ client_id: string; client_secret: string }>('get_google_credentials');
+    if (creds && $('#googleClientId')) {
+      ($('#googleClientId') as HTMLInputElement).value = creds.client_id || '';
+      ($('#googleClientSecret') as HTMLInputElement).value = creds.client_secret || '';
+    }
+  } catch {}
+}
+
+$('#saveCredentialsBtn').onclick = async () => {
+  const cid = ($('#googleClientId') as HTMLInputElement).value.trim();
+  const csec = ($('#googleClientSecret') as HTMLInputElement).value.trim();
+  if (!cid || !csec) {
+    toast('Please enter both Client ID and Client Secret');
+    return;
+  }
+  try {
+    await invoke('set_google_credentials', { clientId: cid, clientSecret: csec });
+    toast('Credentials saved. Click "Connect Google" to sign in.');
+  } catch (err) {
+    toast('Failed to save credentials: ' + err);
+  }
+};
+
+$('#toggleSecretBtn').onclick = () => {
+  const input = $('#googleClientSecret') as HTMLInputElement;
+  const btn = $('#toggleSecretBtn');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Show';
+  }
+};
+
+$('#connectGoogleFromSettingsBtn').onclick = () => $('#syncPill').click();
+
 $('#signOut').onclick = async () => {
   try {
     await invoke('logout');
@@ -949,13 +989,27 @@ $('#sSyncNowBtn').onclick = () => sync();
 $('#syncPill').onclick = async () => {
   if (connected && !reconnectRequired) return sync();
   try {
+    const creds = await invoke<{ client_id: string; client_secret: string }>('get_google_credentials');
+    if (!creds.client_id || !creds.client_secret) {
+      toast('Please set Google Client ID & Secret in Settings');
+      showView('Settings');
+      setTimeout(() => $('#googleClientId')?.focus(), 200);
+      return;
+    }
     toast('Opening Google login in your browser…');
     await invoke('login');
     reconnectRequired = false;
     await sync();
     toast('Connected to Google');
   } catch (e) {
-    toast(String(e));
+    const m = String(e);
+    if (m.includes('MISSING_CREDENTIALS')) {
+      toast('Please enter your Google Client ID and Secret in Settings');
+      showView('Settings');
+      setTimeout(() => $('#googleClientId')?.focus(), 200);
+    } else {
+      toast(m);
+    }
   }
 };
 
@@ -1000,6 +1054,7 @@ $('#greeting').textContent = hour < 12 ? 'Good morning.' : hour < 18 ? 'Good aft
 // Restore from cache first (instant startup UI)
 (async () => {
   try {
+    loadGoogleCredentials();
     const cachedEvents = await invoke<string | null>('load_cache', { key: 'events' });
     if (cachedEvents) events = JSON.parse(cachedEvents);
     const cachedTasks = await invoke<string | null>('load_cache', { key: 'tasks' });
