@@ -10,6 +10,7 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, WindowEvent,
 };
+mod obsidian;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_opener::OpenerExt;
 use tokio::{
@@ -582,6 +583,7 @@ pub fn run() {
             show(app);
         }))
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, _sc, ev| {
@@ -600,6 +602,11 @@ pub fn run() {
             Some(vec!["--startup"]),
         ))
         .invoke_handler(tauri::generate_handler![
+            obsidian::obsidian_scan,
+            obsidian::obsidian_complete,
+            obsidian::obsidian_daily,
+            obsidian::fs_write,
+            obsidian::fs_read,
             login,
             logout,
             fetch_day,

@@ -71,3 +71,15 @@ The installer (`.msi` / `.exe`) will be generated in `src-tauri/target/release/b
 - [x] Tasks full management across lists + add/tick/delete/clear
 - [x] Reminder scheduler with lead time, snooze, quiet hours, and evening review
 - [x] Light, dark, and system matching theme
+
+
+## v0.2: flat design, more settings, Obsidian sync
+- **Flat style:** `src/flat.css` (no shadows or gradients, thin lines, small corners). Delete the `<link>` to it in `index.html` and `popup.html` to go back.
+- **New settings:** default event length, 12/24 hour time, sync interval, backup export and import, clear cache, version. Backups hold app settings only. Google keys are never included.
+- **Obsidian:** Settings > Obsidian > Browse, pick your vault folder.
+  - Open tasks that have a due date (`- [ ] Title 📅 2026-11-16`) and are due today or overdue show in the Obsidian tasks panel on Home.
+  - Ticking one rewrites only that line to `- [x] Title 📅 2026-11-16 ✅ 2026-11-16`.
+  - Recurring tasks (🔁) are skipped on purpose.
+  - Optional: write today's agenda into `Daily/YYYY-MM-DD.md` between `<!-- zr-tasks:start -->` and `<!-- zr-tasks:end -->`. Only that block is replaced.
+- If your Obsidian to Google Tasks plugin already pushes the same tasks to Google, use one path only or tasks will show twice.
+- New Rust file: `src-tauri/src/obsidian.rs`. New plugin: `tauri-plugin-dialog`. Run `npm install` again.
