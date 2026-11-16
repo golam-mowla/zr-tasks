@@ -552,6 +552,33 @@
         <div class="panel-title">Settings</div>
         <div class="panel-sub" style="margin-bottom: 16px;">Preferences, reminders and sync configuration</div>
 
+        <!-- Google Cloud API Credentials -->
+        <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:20px;">
+          <div style="font-weight:750;font-size:13px;display:flex;align-items:center;gap:8px;">
+            <span>🔑 Google Cloud API Credentials</span>
+          </div>
+          <div class="panel-sub" style="margin:4px 0 12px;line-height:1.4;">
+            Google Calendar এবং Tasks সিঙ্ক করতে Desktop OAuth Credentials প্রয়োজন। Google Cloud Console থেকে আপনার Client ID ও Secret বসিয়ে 'Save credentials' চাপুন।
+          </div>
+          <div style="display:grid;gap:10px;">
+            <div>
+              <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;">GOOGLE CLIENT ID</label>
+              <input type="text" id="googleClientId" placeholder="e.g. 123456789-abcdef.apps.googleusercontent.com" style="width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;outline:none;">
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;">GOOGLE CLIENT SECRET</label>
+              <div style="display:flex;gap:6px;">
+                <input type="password" id="googleClientSecret" placeholder="e.g. GOCSPX-xxxxxxxxxxxx" style="flex:1;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;outline:none;">
+                <button type="button" class="btn" id="toggleSecretBtn" style="padding:6px 12px;font-size:11px;border-radius:8px;">Show</button>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap;">
+              <button type="button" class="primary-btn" id="saveCredentialsBtn">Save credentials</button>
+              <button type="button" class="btn" id="connectGoogleFromSettingsBtn" style="background:var(--green-soft);color:var(--green);border-color:transparent;font-weight:700;">Connect Google</button>
+            </div>
+          </div>
+        </div>
+
         <label class="srow">
           <span>Theme</span>
           <select id="sThemeSelect">
