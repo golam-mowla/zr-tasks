@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZR tasks — startup popup, notification, tray</title>
+<style>
+:root{--bg:#f4f6fb;--surface:#fff;--surface-2:#f7f8fc;--ink:#18243a;--muted:#8994a7;--line:#edf0f5;--blue:#4778f5;--blue-soft:#edf3ff;--green:#20966a;--purple:#8067d8;--amber:#c27a0e;--shadow:0 12px 36px rgba(26,42,71,.12);color-scheme:light}
+[data-theme="dark"]{--bg:#0e1320;--surface:#151b2b;--surface-2:#1a2133;--ink:#e7ecf7;--muted:#8a96ad;--line:#232c40;--blue:#6b94ff;--blue-soft:#1c2a4d;--green:#3ecf95;--purple:#a392f0;--amber:#f0b04a;--shadow:0 12px 36px rgba(0,0,0,.4);color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,"Segoe UI",sans-serif;padding:24px}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto 20px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:12px;cursor:pointer}
+.btn.p{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;max-width:900px;margin:0 auto;align-items:start}
+.lbl{font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--muted);margin:0 0 8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px}
+.m{color:var(--muted);font-size:11px}.sec{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--muted);margin:14px 0 2px}
+.row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:12px;font-weight:600}
+.row:first-of-type{border-top:0}.bar{width:3px;height:26px;border-radius:4px;background:var(--blue);flex:none}
+.chk{width:17px;height:17px;border:1.5px solid var(--line);border-color:var(--muted);border-radius:5px;flex:none}
+.sp{flex:1}.tm{font-weight:400;color:var(--muted);font-size:11px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:750;font-size:15px}
+.mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(145deg,#5b88fa,#3769e8);color:#fff;display:grid;place-items:center;font-size:15px}
+.menu{width:230px;padding:6px 0}.mi{padding:7px 16px;font-size:13px;display:flex;gap:10px;align-items:center}.mi:hover{background:var(--surface-2)}
+.mi span:first-child{width:16px;text-align:center;color:var(--muted)}.sep{border-top:1px solid var(--line);margin:5px 0}
+</style></head><body>
+<div class="top"><div class="brand"><img class="mark" src="icon.png" alt="" style="background:none;object-fit:cover;flex:none">ZR tasks · system UI</div><button class="btn" id="t">Toggle theme</button></div>
+<div class="grid">
+<div><p class="lbl">STARTUP POPUP</p><div class="card">
+ <div style="display:flex;justify-content:space-between;align-items:center"><div class="brand"><img class="mark" src="icon.png" alt="" style="background:none;object-fit:cover;flex:none">ZR tasks</div><span class="m" style="color:var(--green)">● Synced 2 min ago</span></div>
+ <div style="font-size:21px;font-weight:720;letter-spacing:-.6px;margin:14px 0 2px">Good morning, GM</div>
+ <div class="m">3 events · 4 tasks · <span style="color:var(--amber)">1 overdue</span></div>
+ <div class="sec">EVENTS</div>
+ <div class="row"><span class="bar"></span><span class="sp">Client edit review</span><span class="tm">4:00 PM</span></div>
+ <div class="row"><span class="bar" style="background:var(--purple)"></span><span class="sp">Campaign deadline</span><span class="tm">6:30 PM</span></div>
+ <div class="row"><span class="bar"></span><span class="sp">Premiere practice</span><span class="tm">9:00 PM</span></div>
+ <div class="sec">TASKS</div>
+ <div class="row"><span class="chk" style="border-color:var(--amber)"></span><span class="sp">Export Sunday batch</span><span class="tm" style="color:var(--amber)">Overdue</span></div>
+ <div class="row"><span class="chk"></span><span class="sp">Upload 5 clips</span><span class="tm">Today</span></div>
+ <div class="row"><span class="chk"></span><span class="sp">Write hooks for tomorrow</span><span class="tm">Today</span></div>
+ <div class="row"><span class="chk"></span><span class="sp">Reply to editor DM</span><span class="tm">Today</span></div>
+ <div style="display:flex;gap:8px;margin-top:14px"><button class="btn p">Open ZR tasks</button><button class="btn">Snooze 1 hour</button></div>
+</div></div>
+<div style="display:grid;gap:24px">
+ <div><p class="lbl">REMINDER NOTIFICATION</p><div class="card" style="display:flex;gap:12px;padding:14px">
+  <img class="mark" src="icon.png" alt="" style="background:none;object-fit:cover;flex:none"><div class="sp"><div style="font-weight:650;font-size:13px">Client edit review in 10 min</div><div class="m">4:00 PM · Google Calendar</div>
+  <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="padding:5px 10px">Snooze 5 min</button><button class="btn" style="padding:5px 10px">Dismiss</button></div></div></div></div>
+ <div><p class="lbl">TRAY MENU</p><div class="card menu">
+  <div class="mi"><span>▦</span>Today</div><div class="mi"><span>＋</span>Quick add task</div><div class="mi"><span>↻</span>Sync now</div>
+  <div class="sep"></div><div class="mi"><span style="color:var(--blue)">✓</span>Launch at login</div><div class="mi"><span>☾</span>Theme: system</div><div class="mi"><span>⚙</span>Settings</div><div class="mi"><span>⏻</span>Quit</div></div></div>
+</div></div>
+<script>
+const r=document.documentElement;let s=null;try{s=localStorage.getItem('zr-theme')}catch(e){}
+r.dataset.theme=s||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+document.getElementById('t').onclick=()=>{const t=r.dataset.theme==='dark'?'light':'dark';r.dataset.theme=t;try{localStorage.setItem('zr-theme',t)}catch(e){}};
+</script></body></html>

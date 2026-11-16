@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZR tasks</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface-2: #f7f8fc;
+      --ink: #18243a;
+      --muted: #8994a7;
+      --line: #edf0f5;
+      --blue: #4778f5;
+      --blue-soft: #edf3ff;
+      --green: #20966a;
+      --purple: #8067d8;
+      --amber: #c27a0e;
+      --shadow: 0 12px 36px rgba(26,42,71,.12);
+      color-scheme: light;
+    }
+    [data-theme="dark"] {
+      --bg: #0e1320;
+      --surface: #151b2b;
+      --surface-2: #1a2133;
+      --ink: #e7ecf7;
+      --muted: #8a96ad;
+      --line: #232c40;
+      --blue: #6b94ff;
+      --blue-soft: #1c2a4d;
+      --green: #3ecf95;
+      --purple: #a392f0;
+      --amber: #f0b04a;
+      --shadow: 0 12px 36px rgba(0,0,0,.4);
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: transparent;
+      color: var(--ink);
+      font: 13px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      padding: 6px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      height: calc(100vh - 12px);
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 750;
+      font-size: 14px;
+    }
+    .mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex: none;
+    }
+    .m {
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .greeting {
+      font-size: 20px;
+      font-weight: 720;
+      letter-spacing: -.6px;
+      margin: 12px 0 2px;
+    }
+    .sec {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      margin: 12px 0 4px;
+      text-transform: uppercase;
+    }
+    .list-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .row:first-of-type { border-top: 0; }
+    .bar {
+      width: 3px;
+      height: 22px;
+      border-radius: 4px;
+      background: var(--blue);
+      flex: none;
+    }
+    .chk {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid var(--muted);
+      border-radius: 5px;
+      flex: none;
+    }
+    .sp {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tm {
+      font-weight: 400;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .od {
+      color: var(--amber) !important;
+    }
+    .act {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 550;
+      transition: background .15s;
+    }
+    .btn:hover {
+      background: var(--line);
+    }
+    .btn.p {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+      font-weight: 650;
+    }
+    .btn.p:hover {
+      opacity: .92;
+    }
+    /* Remind mode card */
+    .remind-box {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    /* Quick add mode card */
+    .qa-box {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+    .qa {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--ink);
+      border-radius: 11px;
+      padding: 12px 14px;
+      font: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+    .qa:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px var(--blue-soft);
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/popup.ts"></script>
+</body>
+</html>
