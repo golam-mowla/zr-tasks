@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { sendNotification, isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
+import './extras';
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -42,7 +43,8 @@ const todayStr = (d = new Date()) => {
   return `${y}-${m}-${day}`;
 };
 
-const clock = (d: Date) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const X = (): { evLen: number; syncMin: number; h24: boolean } => { try { return { evLen: 60, syncMin: 2, h24: false, ...JSON.parse(localStorage.getItem('zr-x') || '{}') }; } catch { return { evLen: 60, syncMin: 2, h24: false }; } };
+const clock = (d: Date) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: X().h24 ? false : undefined });
 const load = <T>(k: string, d: T): T => {
   try {
     const v = localStorage.getItem(k);
@@ -627,7 +629,7 @@ async function addFrom(text: string) {
     if (p.isEvent) {
       const st = new Date(p.date);
       st.setHours(p.hh < 0 ? 9 : p.hh, p.mm, 0, 0);
-      const et = new Date(st.getTime() + 3600000);
+      const et = new Date(st.getTime() + X().evLen * 60000);
       await run('add_event', {
         summary: p.title,
         start: st.toISOString(),
@@ -1069,4 +1071,4 @@ $('#greeting').textContent = hour < 12 ? 'Good morning.' : hour < 18 ? 'Good aft
 })();
 
 // Cadence: poll every 2 min while active window
-setInterval(sync, 120000);
+setInterval(sync, X().syncMin * 60000);
