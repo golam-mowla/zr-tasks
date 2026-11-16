@@ -119,8 +119,30 @@ function buildSettings() {
     head('Data'),
     row('Backup', button('Export', exportBackup), button('Import', importBackup)),
     row('Local cache', button('Clear', clearCache)),
-    head('About'),
+    head('About & Publisher'),
+    row('App Name', el('span', '', 'ZR tasks — Personal Workspace')),
+    row('Publisher', el('span', '', 'Golam Mowla')),
     row('Version', verEl),
+    (() => {
+      const card = el('div', 'form-card');
+      card.style.cssText = 'background:var(--surface-2);border:1px solid var(--line-strong);border-radius:10px;padding:16px;margin:12px 0;line-height:1.5;';
+      card.innerHTML = `
+        <div style="font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--ink);margin-bottom:6px;">
+          <span>🎯</span> <span>ZR tasks — এর কাজ কি? (About & Features)</span>
+        </div>
+        <div style="font-size:12px;color:var(--ink);margin-bottom:12px;line-height:1.5;">
+          <strong>ZR tasks</strong> হলো একটি ফোকাসড পার্সোনাল প্রোডাক্টিভিটি অ্যাপ, যা তৈরি ও প্রকাশ করেছেন <strong>Golam Mowla</strong>। এর মূল উদ্দেশ্য হলো একাধিক অ্যাপ না ঘেঁটে আপনার Google Calendar এবং Google Tasks-এর সব কাজ এক স্ক্রিনে সাজিয়ে দেওয়া, জমে থাকা ওভারডিউ ব্যাকলগ দূর করা এবং কোনো অপ্রয়োজনীয় ডিস্ট্র্যাকশন ছাড়াই প্রতিদিনের লক্ষ্য অর্জনে সাহায্য করা।
+        </div>
+        <div style="display:grid;gap:8px;font-size:11px;color:var(--muted);">
+          <div>⚡ <strong>Google Calendar & Tasks সিঙ্ক:</strong> ক্যালেন্ডার ইভেন্ট ও টাস্ক লিস্টের দ্বিমুখী লাইভ অটো-সিঙ্ক।</div>
+          <div>🎯 <strong>Today Focus Dashboard:</strong> আজকের সবথেকে গুরুত্বপূর্ণ কাজ ও সময়সূচি সহজে ট্র্যাকিং।</div>
+          <div>⚠️ <strong>স্মার্ট ওভারডিউ ড্রয়ার:</strong> পুরনো জমে থাকা ওভারডিউ কাজগুলো এক ক্লিকে আজকের তারিখে রিশিডিউল সুবিধা।</div>
+          <div>📝 <strong>Obsidian Vault কানেকশন:</strong> লোকাল মার্কডাউন নোটস থেকে টাস্ক ইমপোর্ট ও অটো ডেইলি নোট তৈরি।</div>
+          <div>🔔 <strong>স্মার্ট অ্যালার্ম ও ট্রে পপআপ:</strong> নির্ধারিত সময়ের আগে অ্যালার্ম, উইন্ডোজ স্টার্টআপ রান ও কুইক হটকি (Ctrl+Alt+Z)।</div>
+        </div>
+      `;
+      return card;
+    })(),
   );
   anchor.before(box);
 }

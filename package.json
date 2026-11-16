@@ -1,4 +1,4 @@
-{"name":"zr-tasks","version":"0.2.1","private":true,"type":"module",
+{"name":"zr-tasks","version":"0.2.2","author":"Golam Mowla","description":"ZR tasks - Personal Workspace by Golam Mowla","private":true,"type":"module",
 "scripts":{"dev":"vite","build":"vite build","tauri":"tauri"},
 "dependencies":{"@tauri-apps/api":"^2","@tauri-apps/plugin-notification":"^2","@tauri-apps/plugin-autostart":"^2","@tauri-apps/plugin-dialog":"^2"},
 "devDependencies":{"@tauri-apps/cli":"^2","typescript":"^5","vite":"^5"}}
