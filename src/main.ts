@@ -214,12 +214,38 @@ function render() {
     });
   }
 
+  const overdue = tasks.filter(t => t.status !== 'completed' && t.due && parseTaskDue(t.due) < day);
+  const doneTasks = activeTasks.filter(t => t.status === 'completed');
+
   $('#taskCount').textContent = pad(activeTasks.length);
+  const overdueCountEl = $('#overdueCount');
+  if (overdueCountEl) overdueCountEl.textContent = pad(overdue.length);
   $('#eventCount').textContent = pad(activeEvents.length);
-  $('#doneCount').textContent = pad(activeTasks.filter(t => t.status === 'completed').length);
+  $('#doneCount').textContent = pad(doneTasks.length);
+
+  const overdueBadgeEl = $('#overdueBadge');
+  if (overdueBadgeEl) overdueBadgeEl.textContent = `${overdue.length} items`;
+  const taskStatNoteEl = $('#taskStatNote');
+  if (taskStatNoteEl) {
+    taskStatNoteEl.textContent = activeTasks.length > 0 
+      ? `${doneTasks.length} of ${activeTasks.length} done`
+      : 'On your list for this view';
+  }
+  const overdueStatNoteEl = $('#overdueStatNote');
+  if (overdueStatNoteEl) {
+    overdueStatNoteEl.textContent = overdue.length > 0 ? `${overdue.length} items need attention` : 'All caught up!';
+  }
+  const nextEventEl = $('#nextEventSnippet');
+  if (nextEventEl) {
+    if (activeEvents.length > 0) {
+      const first = activeEvents[0];
+      nextEventEl.textContent = `${first.summary || 'Event'} (${formatEventTime(first)})`;
+    } else {
+      nextEventEl.textContent = 'Scheduled for this period';
+    }
+  }
 
   // 1. HOME VIEW: OVERDUE & FILTERED TASKS
-  const overdue = tasks.filter(t => t.status !== 'completed' && t.due && parseTaskDue(t.due) < day);
   const overdueSec = $('#overdueSection');
   const overdueList = $('#overdueTaskList');
   if (overdue.length > 0) {
@@ -1016,6 +1042,53 @@ $('#syncPill').onclick = async () => {
 };
 
 $('#reconnectBtn').onclick = () => $('#syncPill').click();
+
+// Overdue accordion toggle
+let overdueDrawerOpen = true;
+const overdueToggleBtn = $('#overdueToggleBtn');
+const overdueScrollWrap = $('#overdueScrollWrap');
+const overdueArrow = $('#overdueArrow');
+if (overdueToggleBtn && overdueScrollWrap && overdueArrow) {
+  overdueToggleBtn.onclick = () => {
+    overdueDrawerOpen = !overdueDrawerOpen;
+    if (overdueDrawerOpen) {
+      overdueScrollWrap.classList.remove('collapsed');
+      overdueArrow.classList.remove('collapsed');
+    } else {
+      overdueScrollWrap.classList.add('collapsed');
+      overdueArrow.classList.add('collapsed');
+    }
+  };
+}
+
+const statCardOverdue = $('#statCardOverdue');
+if (statCardOverdue && overdueScrollWrap && overdueArrow) {
+  statCardOverdue.onclick = () => {
+    overdueDrawerOpen = true;
+    overdueScrollWrap.classList.remove('collapsed');
+    overdueArrow.classList.remove('collapsed');
+    $('#overdueSection')?.scrollIntoView({ behavior: 'smooth' });
+  };
+}
+
+// Reschedule all overdue tasks to today
+const rescheduleBtn = $('#rescheduleOverdueBtn');
+if (rescheduleBtn) {
+  rescheduleBtn.onclick = async (e) => {
+    e.stopPropagation();
+    const day = todayStr();
+    const overdueList = tasks.filter(t => t.status !== 'completed' && t.due && parseTaskDue(t.due) < day);
+    if (overdueList.length === 0) return;
+    toast(`Rescheduling ${overdueList.length} overdue tasks to today...`);
+    const dueIso = `${day}T00:00:00.000Z`;
+    for (const t of overdueList) {
+      t.due = dueIso;
+      run('reschedule_task', { list: t.list, id: t.id, due: dueIso }).catch(() => {});
+    }
+    render();
+    toast(`Rescheduled ${overdueList.length} tasks to today!`);
+  };
+}
 
 // Event listeners
 listen<any>('snooze', e => {

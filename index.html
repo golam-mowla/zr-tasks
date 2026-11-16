@@ -365,20 +365,25 @@
       </section>
 
       <section class="stats">
-        <article class="stat">
+        <article class="stat" id="statCardFocus">
           <div class="stat-top"><span>Active tasks</span><span class="stat-icon">✓</span></div>
           <div class="stat-number" id="taskCount">00</div>
-          <div class="stat-note">On your list for this view</div>
+          <div class="stat-note" id="taskStatNote">On your list for this view</div>
         </article>
-        <article class="stat">
+        <article class="stat" id="statCardOverdue" style="cursor: pointer;">
+          <div class="stat-top"><span style="color:var(--red);">Overdue queue</span><span class="stat-icon" style="background:var(--red-soft);color:var(--red);">!</span></div>
+          <div class="stat-number" id="overdueCount" style="color:var(--red);">00</div>
+          <div class="stat-note" id="overdueStatNote">Needs rescheduling</div>
+        </article>
+        <article class="stat" id="statCardCalendar">
           <div class="stat-top"><span>Calendar events</span><span class="stat-icon">▦</span></div>
           <div class="stat-number" id="eventCount">00</div>
-          <div class="stat-note">Scheduled for this period</div>
+          <div class="stat-note" id="nextEventSnippet">Scheduled for this period</div>
         </article>
-        <article class="stat">
+        <article class="stat" id="statCardDone">
           <div class="stat-top"><span>Completed</span><span class="stat-icon">↗</span></div>
           <div class="stat-number" id="doneCount">00</div>
-          <div class="stat-note">A little progress adds up</div>
+          <div class="stat-note" id="doneStatNote">A little progress adds up</div>
         </article>
       </section>
 
@@ -392,15 +397,26 @@
             <button class="text-btn" id="clearDone">Clear completed</button>
           </div>
 
-          <!-- Overdue tasks section -->
-          <div id="overdueSection" hidden style="margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1.5px dashed var(--amber);">
-            <div style="font-size: 10px; font-weight: 750; letter-spacing: 1.1px; color: var(--amber); margin-bottom: 6px;">
-              OVERDUE TASKS
+          <!-- Overdue tasks Notion Toggle Drawer -->
+          <div id="overdueSection" class="notion-toggle-card" hidden>
+            <div class="notion-toggle-header" id="overdueToggleBtn">
+              <div class="toggle-title-wrap">
+                <span class="toggle-arrow" id="overdueArrow">▼</span>
+                <span class="toggle-title">Overdue Tasks</span>
+                <span class="badge red" id="overdueBadge">0 items</span>
+              </div>
+              <div class="toggle-actions">
+                <button type="button" class="notion-mini-btn" id="rescheduleOverdueBtn">Reschedule all to today</button>
+              </div>
             </div>
-            <div class="task-list" id="overdueTaskList"></div>
+            <div class="notion-toggle-content" id="overdueScrollWrap">
+              <div class="task-list" id="overdueTaskList"></div>
+            </div>
           </div>
 
-          <div class="task-list" id="taskList"></div>
+          <div class="task-list-scroll">
+            <div class="task-list" id="taskList"></div>
+          </div>
 
           <form class="add-task" id="addTaskForm">
             <input id="newTask" type="text" placeholder="Add a task… e.g. call client tomorrow 5pm  |  event: meeting 4pm" maxlength="90" aria-label="New task">
