@@ -445,6 +445,14 @@ async fn set_task(app: AppHandle, list: String, id: String, done: bool) -> Resul
 }
 
 #[tauri::command]
+async fn reschedule_task(app: AppHandle, list: String, id: String, due: String) -> Result<(), String> {
+    let body = json!({"due": due});
+    api(&app, Method::PATCH, &format!("{TASKS}/lists/{list}/tasks/{id}"), &[], Some(body))
+        .await
+        .map(|_| ())
+}
+
+#[tauri::command]
 async fn add_task(app: AppHandle, title: String, due: String, notes: Option<String>) -> Result<(), String> {
     let mut b = json!({"title": title, "due": due});
     if let Some(n) = notes {
@@ -616,6 +624,7 @@ pub fn run() {
             clear_done,
             add_event,
             delete_event,
+            reschedule_task,
             open_popup,
             is_startup,
             show_main,
