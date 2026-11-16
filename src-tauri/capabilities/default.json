@@ -1,0 +1,1 @@
+{"identifier":"default","description":"ZR tasks windows","windows":["main","popup*"],"permissions":["core:default","core:window:allow-close","notification:default","opener:default","autostart:allow-enable","autostart:allow-disable","autostart:allow-is-enabled"]}
