@@ -1,85 +1,76 @@
 # ZR tasks
 
-Fast, lightweight Windows desktop app: Google Calendar + Google Tasks sync, startup "today" popup, reminders, tray, light and dark theme.
+> **Personal Workspace & Productivity Hub by [Golam Mowla](https://github.com/golam-mowla)**  
+> Fast, lightweight Windows desktop app: Google Calendar + Google Tasks 2-way sync, Notion-style card dashboard, Obsidian vault integration, startup "Today" popup, system tray controls, and smart reminder alarms.
 
-## Kit contents
-- `design/zr_tasks_dashboard.html` — reference dashboard
-- `design/zr_tasks_system_ui.html` — startup popup, reminder notification, tray menu
-- `docs/ANTIGRAVITY_PROMPT.md` — project spec and phase breakdown
-- `.github/workflows/build.yml` — builds the Windows installer on GitHub Actions
-- `.env.example`, `.gitignore`
+[![Release](https://img.shields.io/github/v/release/golam-mowla/zr-tasks?style=flat-square&color=6366F1)](https://github.com/golam-mowla/zr-tasks/releases/latest)
+[![Author](https://img.shields.io/badge/Author-Golam%20Mowla-0EA5E9?style=flat-square)](https://github.com/golam-mowla)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
-## Features implemented
-- **Google OAuth 2.0 PKCE:** Loopback redirect on `127.0.0.1`, refresh tokens safely secured in Windows Credential Store (`keyring`).
-- **SQLite Local Cache:** `rusqlite` bundled persistence for offline capability, instant cold startup UI, and fast popup loading.
-- **Home View (Today):** Filter by Today, Tomorrow, or 7-Day window; overdue section with amber badges; upcoming events list; connected account live status.
-- **Calendar View:** 7-day grouped agenda from Google Calendar with inline event creation and event deletion.
-- **Tasks View:** Complete view across all Google Task lists with filters (All, Overdue, Today, Upcoming, Completed) and task deletion.
-- **Reminders Engine & Scheduler:**
-  - Lead time alerts (5, 10, 15, 30 min before events and timed tasks).
-  - Timed tasks: `⏰ HH:MM` notes format.
-  - Snooze actions: 5 min, 10 min, 30 min, 1 hour.
-  - Do Not Disturb & Quiet hours filtering.
-  - Evening review notification (default 9:00 PM).
-  - De-duplication memory (`zr-fired`) to prevent repeat alerts.
-- **Quick Add (`Ctrl+Alt+Z`):** Global shortcut popup with natural language parsing (`call client tomorrow 5pm` or `event: meeting 4pm`).
-- **Startup Popup:** Frameless, always-on-top, bottom-right popup showing today's events, tasks, and overdue badges. Closes on Escape or click-away.
-- **System Tray:** Full menu (Today, Quick add task, Sync now, Launch at login, Theme toggle, Settings, Quit). Left-click opens today's popup; dynamic tooltip shows remaining events and tasks.
-- **Theme:** Matches design tokens in light and dark modes with system auto-detection and persistence.
+---
 
-## Step 1 — Install tools (Windows, one time)
-1. Node.js LTS (nodejs.org)
-2. Rust via rustup (rustup.rs)
+## 🚀 Key Features
+
+1. **Google Calendar & Google Tasks 2-Way Sync**
+   - OAuth 2.0 PKCE loopback redirect with Windows Credential Store (`keyring`) security.
+   - Realtime 2-way synchronization between your Google account and local SQLite cache for instant offline access.
+2. **Notion-Style UI & Card Dashboard**
+   - Clean, modern Notion aesthetic with sticky viewport-pinned navigation.
+   - High-contrast visual cards for *Overdue*, *Today Focus*, *Upcoming Events*, and *Obsidian Tasks*.
+3. **Smart Overdue Drawer & 1-Click Reschedule**
+   - Dedicated collapsible drawer for delayed tasks with quick actions (Reschedule to Today, Tomorrow, or Weekend).
+4. **Obsidian Vault Markdown Integration**
+   - Connect directly to your local Obsidian vault.
+   - Reads `- [ ] Task 📅 YYYY-MM-DD` syntax and syncs completions seamlessly.
+   - Writes today's agenda into `Daily/YYYY-MM-DD.md` without touching other notes.
+5. **System Tray & Intelligent Reminder Alarms**
+   - Global Quick Add (`Ctrl+Alt+Z`) popup with natural language parsing.
+   - Configurable lead-time alerts (5, 10, 15, 30 min), customizable snooze, and evening review.
+   - Frameless, bottom-right startup popup summarizing your day on login.
+
+---
+
+## 📥 Downloads (v0.2.2)
+
+- **[ZR tasks v0.2.2 Setup (NSIS .exe)](https://github.com/golam-mowla/zr-tasks/releases/download/v0.2.2/ZR.tasks_0.2.2_x64-setup.exe)** — Recommended installer with automatic desktop and start menu shortcuts.
+- **[ZR tasks v0.2.2 MSI (.msi)](https://github.com/golam-mowla/zr-tasks/releases/download/v0.2.2/ZR.tasks_0.2.2_x64_en-US.msi)** — Enterprise Windows Installer package.
+- **[Portable Executable (zr-tasks.exe)](https://github.com/golam-mowla/zr-tasks/releases/download/v0.2.2/zr-tasks.exe)** — Standalone portable binary.
+
+---
+
+## 🛠️ Development & Building
+
+### Prerequisites
+1. Node.js LTS (v18+)
+2. Rust & Cargo (via [rustup.rs](https://rustup.rs))
 3. Microsoft C++ Build Tools ("Desktop development with C++")
-4. WebView2 runtime (pre-installed on Windows 11 / Windows 10)
+4. WebView2 runtime (pre-installed on Windows 10/11)
 
-## Step 2 — Google Cloud setup
-1. Go to [Google Cloud Console](https://console.cloud.google.com/) → New project `zr-tasks`.
-2. Enable **Google Calendar API** and **Google Tasks API**.
-3. OAuth consent screen → External → add scopes:
-   - `https://www.googleapis.com/auth/calendar.events`
-   - `https://www.googleapis.com/auth/tasks`
-4. Add your own Google account as a Test user.
-5. Credentials → Create credentials → OAuth client ID → application type **Desktop app**.
-6. Copy `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` into a `.env` file (copied from `.env.example`).
-7. *(Optional)* When ready for permanent usage, click **Publish app** in the OAuth consent screen to avoid the 7-day token expiration.
-
-## Step 3 — Run development build
-1. Install dependencies:
-   ```powershell
-   npm install
-   ```
-2. Run in development mode:
-   ```powershell
-   npm run tauri dev
-   ```
-3. Click **Connect Google** in the top bar to authenticate. Your calendar events and tasks will sync immediately.
-
-## Step 4 — Build Windows installer
-To build the standalone Windows installer locally:
+### Setup & Run
 ```powershell
+# 1. Clone repository
+git clone https://github.com/golam-mowla/zr-tasks.git
+cd zr-tasks
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure Google API keys
+cp .env.example .env
+# Edit .env with your GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+
+# 4. Run in dev mode
+npm run tauri dev
+
+# 5. Build production installers
 npm run tauri build
 ```
-The installer (`.msi` / `.exe`) will be generated in `src-tauri/target/release/bundle/`.
 
-## Test checklist
-- [x] Backend compilation (`cargo check`) & frontend build (`vite build`) passing cleanly
-- [x] Google login (PKCE) flow with auto-reconnect banner
-- [x] Startup popup matches system UI design, closes on Escape or click away
-- [x] Tray menu with full controls & left-click popup trigger
-- [x] Calendar 7-day agenda + add/delete event
-- [x] Tasks full management across lists + add/tick/delete/clear
-- [x] Reminder scheduler with lead time, snooze, quiet hours, and evening review
-- [x] Light, dark, and system matching theme
+---
 
+## 👤 Author & Publisher
+- **Publisher**: **Golam Mowla**
+- **GitHub**: [@golam-mowla](https://github.com/golam-mowla)
+- **Email**: `golam589102@gmail.com`
 
-## v0.2: flat design, more settings, Obsidian sync
-- **Flat style:** `src/flat.css` (no shadows or gradients, thin lines, small corners). Delete the `<link>` to it in `index.html` and `popup.html` to go back.
-- **New settings:** default event length, 12/24 hour time, sync interval, backup export and import, clear cache, version. Backups hold app settings only. Google keys are never included.
-- **Obsidian:** Settings > Obsidian > Browse, pick your vault folder.
-  - Open tasks that have a due date (`- [ ] Title 📅 2026-11-16`) and are due today or overdue show in the Obsidian tasks panel on Home.
-  - Ticking one rewrites only that line to `- [x] Title 📅 2026-11-16 ✅ 2026-11-16`.
-  - Recurring tasks (🔁) are skipped on purpose.
-  - Optional: write today's agenda into `Daily/YYYY-MM-DD.md` between `<!-- zr-tasks:start -->` and `<!-- zr-tasks:end -->`. Only that block is replaced.
-- If your Obsidian to Google Tasks plugin already pushes the same tasks to Google, use one path only or tasks will show twice.
-- New Rust file: `src-tauri/src/obsidian.rs`. New plugin: `tauri-plugin-dialog`. Run `npm install` again.
+Copyright © 2026 Golam Mowla. All rights reserved.
